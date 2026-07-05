@@ -29,7 +29,6 @@ package com.nucleon.porttasks;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -109,14 +108,12 @@ class PortTasksWorldOverlay extends Overlay
 			PortLocation start = orderedPortLocations.get(i);
 			PortLocation end = orderedPortLocations.get(i + 1);
 			if (start == end) continue;
-			PortPathMatch portPathMatch = PortPaths.findPath(start, end);
-			if (portPathMatch.getPath() == PortPaths.DEFAULT)
+			List<WorldPoint> journey = PortPaths.findSmartPath(start, end);
+			if (journey.isEmpty())
 			{
 				log.info("Failed to find valid path, skipping smart routing world render");
 				return;
 			}
-			List<WorldPoint> journey = portPathMatch.getPath().getFullPath();
-			if (portPathMatch.isReversed()) Collections.reverse(journey);
 			WorldLines.drawWorldLines(g, client, journey, colors[colorIndex++ % 2], plugin.getPathDrawDistance(), plugin.getPathDrawDistance());
 		}
 	}

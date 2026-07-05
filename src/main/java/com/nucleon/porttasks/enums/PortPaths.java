@@ -3,7 +3,14 @@ package com.nucleon.porttasks.enums;
 import com.nucleon.porttasks.PortPathMatch;
 import com.nucleon.porttasks.RelativeMove;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.PriorityQueue;
+import java.util.Set;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.coords.WorldPoint;
@@ -1177,10 +1184,8 @@ public enum PortPaths
 		PortLocation.JATIZSO,
 		new RelativeMove(14, -12),
 		new RelativeMove(77, -33),
-		new RelativeMove(119, -118),
-		new RelativeMove(149, -10),
-		new RelativeMove(-3, 1),
-		new RelativeMove(-67, 67)
+		new RelativeMove(82, -30),
+		new RelativeMove(82, -30)
 	),
 	PORT_TYRAS_RELLEKKA(
 		PortLocation.PORT_TYRAS,
@@ -2543,6 +2548,18 @@ public enum PortPaths
 	private final List<RelativeMove> pathPoints;
 	private final double distance;
 
+	private static final class RouteNode
+	{
+		private final PortLocation port;
+		private final double distance;
+
+		private RouteNode(PortLocation port, double distance)
+		{
+			this.port = port;
+			this.distance = distance;
+		}
+	}
+
 	PortPaths(PortLocation start, PortLocation end, RelativeMove... pathPoints)
 	{
 		this.start = start;
@@ -2565,6 +2582,110 @@ public enum PortPaths
 		}
 		log.info("Failed to find route between {} and {}", a, b);
 		return new PortPathMatch(DEFAULT, false);
+	}
+
+	public static List<WorldPoint> findSmartPath(PortLocation a, PortLocation b)
+	{
+		List<PortPathMatch> segments = findRouteSegments(a, b);
+		if (segments.isEmpty())
+		{
+			log.info("Failed to find route between {} and {}", a, b);
+			return List.of();
+		}
+
+		List<WorldPoint> fullPath = new ArrayList<>();
+		for (PortPathMatch segment : segments)
+		{
+			List<WorldPoint> segmentPath = segment.getPath().getFullPath();
+			if (segment.isReversed())
+			{
+				Collections.reverse(segmentPath);
+			}
+			if (!fullPath.isEmpty() && !segmentPath.isEmpty())
+			{
+				segmentPath.remove(0);
+			}
+			fullPath.addAll(segmentPath);
+		}
+		return fullPath;
+	}
+
+	private static List<PortPathMatch> findRouteSegments(PortLocation source, PortLocation target)
+	{
+		Map<PortLocation, Double> distances = new HashMap<>();
+		Map<PortLocation, PortLocation> previous = new HashMap<>();
+		Map<PortLocation, PortPathMatch> previousPath = new HashMap<>();
+		Set<PortLocation> visited = new HashSet<>();
+		PriorityQueue<RouteNode> queue = new PriorityQueue<>(Comparator.comparingDouble(node -> node.distance));
+
+		distances.put(source, 0.0);
+		queue.add(new RouteNode(source, 0.0));
+
+		while (!queue.isEmpty())
+		{
+			RouteNode currentNode = queue.poll();
+			PortLocation current = currentNode.port;
+			if (!visited.add(current))
+			{
+				continue;
+			}
+
+			if (current == target)
+			{
+				break;
+			}
+
+			for (PortPaths path : values())
+			{
+				if (path == DEFAULT)
+				{
+					continue;
+				}
+
+				if (path.start == current)
+				{
+					updateRoute(current, path.end, new PortPathMatch(path, false), currentNode.distance, distances, previous, previousPath, queue);
+				}
+				if (path.end == current)
+				{
+					updateRoute(current, path.start, new PortPathMatch(path, true), currentNode.distance, distances, previous, previousPath, queue);
+				}
+			}
+		}
+
+		if (!previousPath.containsKey(target))
+		{
+			return List.of();
+		}
+
+		List<PortPathMatch> segments = new ArrayList<>();
+		PortLocation current = target;
+		while (current != source)
+		{
+			PortPathMatch segment = previousPath.get(current);
+			if (segment == null)
+			{
+				return List.of();
+			}
+			segments.add(segment);
+			current = previous.get(current);
+		}
+		Collections.reverse(segments);
+		return segments;
+	}
+
+	private static void updateRoute(PortLocation current, PortLocation next, PortPathMatch pathMatch, double currentDistance,
+		Map<PortLocation, Double> distances, Map<PortLocation, PortLocation> previous,
+		Map<PortLocation, PortPathMatch> previousPath, PriorityQueue<RouteNode> queue)
+	{
+		double candidateDistance = currentDistance + pathMatch.getPath().distance;
+		if (candidateDistance < distances.getOrDefault(next, Double.MAX_VALUE))
+		{
+			distances.put(next, candidateDistance);
+			previous.put(next, current);
+			previousPath.put(next, pathMatch);
+			queue.add(new RouteNode(next, candidateDistance));
+		}
 	}
 
 	public List<WorldPoint> getFullPath()

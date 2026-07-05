@@ -114,18 +114,11 @@ class PortTasksMapOverlay extends Overlay
 			{
 				continue;
 			}
-			PortPathMatch portPathMatch = PortPaths.findPath(start, end);
-
-			if (portPathMatch.getPath() == PortPaths.DEFAULT)
+			List<WorldPoint> journey = PortPaths.findSmartPath(start, end);
+			if (journey.isEmpty())
 			{
 				log.info("Because we failed to find valid path between points, we will not attempt to do smart rendering");
 				return;
-			}
-
-			List<WorldPoint> journey = portPathMatch.getPath().getFullPath();
-			if (portPathMatch.isReversed())
-			{
-				Collections.reverse(journey);
 			}
 
 			journeys.add(journey);
