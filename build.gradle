@@ -36,11 +36,11 @@ tasks.withType(JavaCompile).configureEach {
 }
 
 tasks.register('run', JavaExec) {
-    classpath = sourceSets.test.runtimeClasspath
-    mainClass = pluginMainClass
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = pluginMainClass
 
-    jvmArgs "-ea"
-    args "--developer-mode"
+	jvmArgs "-ea"
+	args "--developer-mode", "--debug"
 }
 
 tasks.register('shadowJar', Jar) {
