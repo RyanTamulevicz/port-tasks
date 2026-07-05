@@ -1172,6 +1172,16 @@ public enum PortPaths
 		new RelativeMove(34, 0),
 		new RelativeMove(67, -67)
 	),
+	LUNAR_ISLE_JATIZSO(
+		PortLocation.LUNAR_ISLE,
+		PortLocation.JATIZSO,
+		new RelativeMove(14, -12),
+		new RelativeMove(77, -33),
+		new RelativeMove(119, -118),
+		new RelativeMove(149, -10),
+		new RelativeMove(-3, 1),
+		new RelativeMove(-67, 67)
+	),
 	PORT_TYRAS_RELLEKKA(
 		PortLocation.PORT_TYRAS,
 		PortLocation.RELLEKKA,
