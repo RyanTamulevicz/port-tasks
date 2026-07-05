@@ -2190,6 +2190,21 @@ public enum PortPaths
 		new RelativeMove(22, 0),
 		new RelativeMove(6, -6)
 	),
+	SUNSET_COAST_DEEPFIN_POINT(
+		PortLocation.SUNSET_COAST,
+		PortLocation.DEEPFIN_POINT,
+		new RelativeMove(-24, 0),
+		new RelativeMove(-6, 6),
+		new RelativeMove(-22, 0),
+		new RelativeMove(20, 0),
+		new RelativeMove(40, -40),
+		new RelativeMove(51, 0),
+		new RelativeMove(11, -11),
+		new RelativeMove(0, -25),
+		new RelativeMove(21, -21),
+		new RelativeMove(115, 0),
+		new RelativeMove(128, -128)
+	),
 	SUNSET_COAST_PRIFDDINAS(
 		PortLocation.SUNSET_COAST,
 		PortLocation.PRIFDDINAS,
